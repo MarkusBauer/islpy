@@ -11,6 +11,8 @@ using namespace std;
 __isl_give isl_basic_set *isl_basic_set_ext_join(__isl_take isl_basic_set *set1, __isl_take isl_basic_set *set2){
 	unsigned int dimA = isl_basic_set_dim(set1, isl_dim_set);
     unsigned int dimB = isl_basic_set_dim(set2, isl_dim_set);
+    if (dimA < dimB) return isl_basic_set_ext_join(set2, set1);
+
 	map<string, int> varsA; // contains all variables from A
     vector<string> varsNew; // contains all variables from B but not from A
     vector<int> oldPosToNewPosB(dimB); // "maps" old indices (of B's vars) to new indices (in result)
@@ -38,18 +40,23 @@ __isl_give isl_basic_set *isl_basic_set_ext_join(__isl_take isl_basic_set *set1,
 
     // add b's constraints to A
     isl_constraint_list* constraints = isl_basic_set_get_constraint_list(set2);
-    for (signed int i = isl_constraint_list_n_constraint(constraints)-1; i >= 0; i--){
+    int n = isl_constraint_list_n_constraint(constraints);
+    vector<isl_constraint*> cResult(n);
+//#pragma omp for
+    for (signed int i = n-1; i >= 0; i--){
         isl_constraint* cB = isl_constraint_list_get_constraint(constraints, i);
-        isl_constraint* cResult = isl_constraint_is_equality(cB)
+        cResult[i] = isl_constraint_is_equality(cB)
                              ? isl_constraint_alloc_equality(isl_basic_set_get_local_space(result))
                              : isl_constraint_alloc_inequality(isl_basic_set_get_local_space(result));
-        cResult = isl_constraint_set_constant_val(cResult, isl_constraint_get_constant_val(cB));
-        for (unsigned i = 0; i < dimB; i++){
-            cResult = isl_constraint_set_coefficient_val(cResult, isl_dim_set, oldPosToNewPosB[i],
-                                                         isl_constraint_get_coefficient_val(cB, isl_dim_set, i));
+        cResult[i] = isl_constraint_set_constant_val(cResult[i], isl_constraint_get_constant_val(cB));
+        for (unsigned j = 0; j < dimB; j++){
+            cResult[i] = isl_constraint_set_coefficient_val(cResult[i], isl_dim_set, oldPosToNewPosB[j],
+                                                         isl_constraint_get_coefficient_val(cB, isl_dim_set, j));
         }
-        result = isl_basic_set_add_constraint(result, cResult);
         isl_constraint_free(cB);
+    }
+    for (signed int i = n-1; i >= 0; i--){
+        result = isl_basic_set_add_constraint(result, cResult[i]);
     }
     isl_constraint_list_free(constraints);
 
