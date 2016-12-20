@@ -225,6 +225,12 @@ def main():
     # }}}
 
     INCLUDE_DIRS.extend(conf["ISL_INC_DIR"])
+    # CODE EXTENSIONS
+    INCLUDE_DIRS.append('extensions')
+    wrapper_dirs.append('extensions')
+    from glob import glob
+    for fn in glob("extensions/isl_extensions/*.c") + glob("extensions/isl_extensions/*.cpp"):
+        EXTRA_SOURCES.append(fn)
 
     if not (conf["USE_SHIPPED_ISL"] and conf["USE_SHIPPED_IMATH"]):
         INCLUDE_DIRS.extend(conf["GMP_INC_DIR"])

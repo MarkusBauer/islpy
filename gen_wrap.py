@@ -1598,6 +1598,8 @@ def gen_wrapper(include_dirs, include_barvinok=False, isl_version=None):
     fdata.read_header("isl/ast_build.h")
     fdata.read_header("isl/ilp.h")
 
+    fdata.read_header("isl_extensions/custom_functions.h")
+    
     if isl_version is None:
         fdata.read_header("isl_declaration_macros_expanded.h")
     else:
@@ -1721,6 +1723,6 @@ def gen_wrapper(include_dirs, include_barvinok=False, isl_version=None):
 
 if __name__ == "__main__":
     from os.path import expanduser
-    gen_wrapper([expanduser("isl/include")])
+    gen_wrapper([expanduser("isl/include"), expanduser('extensions')])
 
 # vim: foldmethod=marker
