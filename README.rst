@@ -25,3 +25,14 @@ Islpy comes with comprehensive `documentation <http://documen.tician.de/islpy>`_
 *Requirements:* islpy needs a C++ compiler to build. GMP, which used to be
 a dependency, is no longer required.
 
+Building
+--------
+By default, islpy builds without any compiler optimization. On linux, best thing I
+found is using Clang + link-time optimization. Setup clang and run:
+``./clang-build.sh``
+
+If you do not want to deal with Clang/LTO, enable classical optimization at least::
+
+    python configure.py --cxxflags "-O3" --ldflags "-O3"
+    python setup.py build
+
